@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>QR Code Scanner</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="styles/lecteur.css">
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center">Scanner QR Code</h2>
+
+        <div id="reader" class="text-center"></div>
+
+        <div class="text-center mt-4">
+            <h4>SCAN RESULT</h4>
+            <div id="result"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.1.0/html5-qrcode.min.js"></script>
+    <script>
+        function onScanSuccess(qrCodeMessage) {
+            document.getElementById('result').innerHTML = '<span class="result">' + qrCodeMessage + '</span>';
+            // Send the QR code message to the server using AJAX
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'pointage.php?id=' + getQueryParam('id'), true);
+            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === 4) {
+                    if (xhr.status === 200) {
+                        console.log(xhr.responseText);
+                        // Display the response message received from the server
+                        document.getElementById('result').innerHTML = xhr.responseText;
+                        html5QrcodeScanner.clear();
+                    } else {
+                        console.error('Error:', xhr.status, xhr.statusText);
+                    }
+                }
+            };
+            var params = 'qrCodeMessage=' + encodeURIComponent(qrCodeMessage);
+            xhr.send(params);
+        }
+
+        function onScanError(errorMessage) {
+            // Handle scan error
+        }
+
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        var html5QrcodeScanner = new Html5QrcodeScanner('reader', { fps: 10, qrbox: 500 });
+        html5QrcodeScanner.render(onScanSuccess, onScanError);
+    </script>
+</body>
+</html>
